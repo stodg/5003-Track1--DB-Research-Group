@@ -1,0 +1,1428 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Restaurant Management System - Full Version v3.1</title>
+    <!-- 引入 Element UI 和 Vue -->
+    <link rel="stylesheet" href="https://unpkg.com/element-ui/lib/theme-chalk/index.css">
+    <script src="https://unpkg.com/vue@2/dist/vue.js"></script>
+    <script src="https://unpkg.com/element-ui/lib/index.js"></script>
+    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+
+    <style>
+        body, html { margin: 0; padding: 0; height: 100%; font-family: "Helvetica Neue", Helvetica, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "微软雅黑", Arial, sans-serif; }
+        #app { display: flex; height: 100vh; }
+
+        /* 左侧菜单 */
+        .aside { width: 220px; background-color: #304156; color: white; flex-shrink: 0; overflow-y: auto; }
+        .logo { height: 60px; line-height: 60px; text-align: center; font-size: 18px; font-weight: bold; background-color: #263445; }
+        .el-menu { border-right: none; }
+
+        /* 右侧主区域 */
+        .main-container { flex: 1; display: flex; flex-direction: column; background-color: #f0f2f5; overflow: hidden; }
+        .header { height: 50px; background: #fff; border-bottom: 1px solid #d8dce5; display: flex; align-items: center; padding: 0 20px; justify-content: space-between; }
+        .content { flex: 1; padding: 20px; overflow-y: auto; }
+
+        /* 通用样式 */
+        .card-box { background: #fff; padding: 20px; border-radius: 4px; box-shadow: 0 2px 12px 0 rgba(0,0,0,0.1); }
+        .filter-container { margin-bottom: 20px; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+        .food-thumb { width: 60px; height: 60px; border-radius: 4px; object-fit: cover; }
+        .avatar-thumb { width: 50px; height: 50px; border-radius: 50%; object-fit: cover; border: 2px solid #e0e0e0; }
+
+        /* 统计卡片 */
+        .stat-card { text-align: center; padding: 20px; background: #fff; border-radius: 4px; margin-bottom: 20px; cursor: pointer; transition: all 0.3s; }
+        .stat-card:hover { box-shadow: 0 4px 16px rgba(0,0,0,0.1); transform: translateY(-2px); }
+        .stat-val { font-size: 24px; font-weight: bold; color: #409EFF; margin-top: 10px; }
+        .stat-title { color: #909399; font-size: 14px; }
+
+        /* 头像上传区域 */
+        .avatar-uploader { text-align: center; margin-bottom: 20px; }
+        .avatar-uploader .el-upload {
+            border: 2px dashed #d9d9d9;
+            border-radius: 50%;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+            transition: border-color 0.3s;
+        }
+        .avatar-uploader .el-upload:hover {
+            border-color: #409EFF;
+        }
+        .avatar-preview {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            object-fit: cover;
+            display: block;
+        }
+        .avatar-uploader-icon {
+            font-size: 28px;
+            color: #8c939d;
+            width: 120px;
+            height: 120px;
+            line-height: 120px;
+            text-align: center;
+            border-radius: 50%;
+        }
+
+        /* 菜品图片上传区域 */
+        .food-image-uploader { text-align: center; margin-bottom: 20px; }
+        .food-image-uploader .el-upload {
+            border: 2px dashed #d9d9d9;
+            border-radius: 4px;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+            transition: border-color 0.3s;
+            width: 200px;
+            height: 150px;
+            margin: 0 auto;
+            display: block;
+        }
+        .food-image-uploader .el-upload:hover {
+            border-color: #409EFF;
+        }
+        .food-preview {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+        }
+        .food-uploader-icon {
+            font-size: 28px;
+            color: #8c939d;
+            width: 200px;
+            height: 150px;
+            line-height: 150px;
+            text-align: center;
+        }
+
+        /* 密码显示样式 */
+        .password-display {
+            font-family: monospace;
+            letter-spacing: 1px;
+            background-color: #f5f5f5;
+            padding: 2px 6px;
+            border-radius: 3px;
+            border: 1px solid #e0e0e0;
+        }
+
+        /* 头像错误处理 */
+        .avatar-error {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background-color: #f0f0f0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 2px solid #e0e0e0;
+            color: #999;
+            font-size: 12px;
+        }
+
+        /* 菜品图片错误处理 */
+        .food-error {
+            width: 60px;
+            height: 60px;
+            border-radius: 4px;
+            background-color: #f0f0f0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 1px solid #e0e0e0;
+            color: #999;
+            font-size: 10px;
+        }
+
+        /* 余额样式 */
+        .balance-positive { color: #67C23A; font-weight: bold; }
+        .balance-low { color: #E6A23C; font-weight: bold; }
+        .balance-negative { color: #F56C6C; font-weight: bold; }
+
+        /* 员工职位标签样式 */
+        .position-tag { margin: 2px; }
+        .salary-info { font-family: monospace; background-color: #f0f9ff; padding: 2px 6px; border-radius: 3px; }
+
+        /* 工资颜色 */
+        .salary-high { color: #F56C6C; font-weight: bold; }
+        .salary-medium { color: #E6A23C; font-weight: bold; }
+        .salary-low { color: #67C23A; font-weight: bold; }
+
+        /* 修复：图片加载错误时的样式 */
+        .image-error-placeholder {
+            background-color: #f5f5f5;
+            border: 1px dashed #d9d9d9;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #999;
+            font-size: 12px;
+        }
+
+        /* 成功提示样式 */
+        .success-message {
+            background: #f0f9ff;
+            border: 1px solid #b3d9ff;
+            border-radius: 4px;
+            padding: 10px;
+            margin: 10px 0;
+            color: #409EFF;
+        }
+
+        /* 修复状态指示器 */
+        .fix-status {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 12px;
+            margin-left: 10px;
+        }
+        .fix-status.fixed {
+            background: #f0f9ff;
+            color: #409EFF;
+            border: 1px solid #b3d9ff;
+        }
+        .fix-status.working {
+            background: #fdf6ec;
+            color: #e6a23c;
+            border: 1px solid #f5dab1;
+        }
+
+        /* 修复菜品表格样式 */
+        .food-name-cell {
+            min-width: 180px;
+            max-width: 250px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .food-price-cell {
+            min-width: 100px;
+            text-align: center;
+        }
+
+        .food-stock-cell {
+            min-width: 100px;
+            text-align: center;
+        }
+
+        /* 调整表格间距 */
+        .el-table .cell {
+            padding: 0 8px;
+        }
+
+        .el-table th {
+            padding: 8px 0;
+        }
+
+        .el-table td {
+            padding: 8px 0;
+        }
+    </style>
+</head>
+<body>
+    <!-- Vue 挂载点 -->
+    <div id="app">
+        <!-- 左侧导航 -->
+        <div class="aside">
+            <div class="logo">🍽️ Restaurant Management System <span class="fix-status fixed">v3.1</span></div>
+            <el-menu
+                :default-active="activeIndex"
+                background-color="#304156"
+                text-color="#bfcbd9"
+                active-text-color="#409EFF"
+                @select="handleMenuSelect">
+
+                <el-menu-item index="1">
+                    <i class="el-icon-s-home"></i>
+                    <span slot="title">Dashboard</span>
+                </el-menu-item>
+                <el-menu-item index="2">
+                    <i class="el-icon-user-solid"></i>
+                    <span slot="title">User Management</span>
+                </el-menu-item>
+                <el-menu-item index="3">
+                    <i class="el-icon-s-order"></i>
+                    <span slot="title">Order Management</span>
+                </el-menu-item>
+                <el-menu-item index="4">
+                    <i class="el-icon-dish"></i>
+                    <span slot="title">Food Inventory</span>
+                </el-menu-item>
+                <el-menu-item index="5">
+                    <i class="el-icon-s-custom"></i>
+                    <span slot="title">Employee Management</span>
+                </el-menu-item>
+            </el-menu>
+        </div>
+
+        <!-- 右侧内容 -->
+        <div class="main-container">
+            <div class="header">
+                <span style="font-size: 16px; font-weight: 500;">{{ currentTitle }}</span>
+                <el-tag size="small" type="success">Admin Logged In - All Functions Normal</el-tag>
+            </div>
+
+            <div class="content">
+
+                <!-- 1. Dashboard -->
+                <div v-if="activeIndex === '1'">
+                    <el-row :gutter="20">
+                        <el-col :span="4"><div class="stat-card"><div class="stat-title">Total Users</div><div class="stat-val">{{ stats.user_count }}</div></div></el-col>
+                        <el-col :span="4"><div class="stat-card"><div class="stat-title">Total Orders</div><div class="stat-val">{{ stats.order_count }}</div></div></el-col>
+                        <el-col :span="4"><div class="stat-card"><div class="stat-title">Total Sales</div><div class="stat-val">${{ stats.total_sales.toFixed(2) }}</div></div></el-col>
+                        <el-col :span="4"><div class="stat-card"><div class="stat-title">Food Items</div><div class="stat-val">{{ stats.food_count }}</div></div></el-col>
+                        <el-col :span="4"><div class="stat-card"><div class="stat-title">Employees</div><div class="stat-val">{{ stats.employee_count }}</div></div></el-col>
+                        <el-col :span="4"><div class="stat-card"><div class="stat-title">Salary Expense</div><div class="stat-val">${{ stats.total_salary_expense.toFixed(2) }}</div></div></el-col>
+                    </el-row>
+
+                    <div class="card-box" style="margin-top: 20px; min-height: 400px;">
+                        <h3>🎉 System Overview</h3>
+                        <el-row :gutter="20" style="margin-top: 20px;">
+                            <el-col :span="12">
+                                <h4>✅ Core Features</h4>
+                                <ul>
+                                    <li>User Management with Avatar Upload</li>
+                                    <li>Order Management System</li>
+                                    <li>Food Inventory Management</li>
+                                    <li>Employee Management</li>
+                                    <li>Real-time Statistics</li>
+                                </ul>
+                            </el-col>
+                            <el-col :span="12">
+                                <h4>🚀 Advanced Features</h4>
+                                <ul>
+                                    <li>Image Upload for Food Items</li>
+                                    <li>Balance Management</li>
+                                    <li>Stock Tracking</li>
+                                    <li>Salary Calculation</li>
+                                    <li>Order History</li>
+                                </ul>
+                            </el-col>
+                        </el-row>
+                    </div>
+                </div>
+
+                <!-- 2. User Management -->
+                <div v-if="activeIndex === '2'" class="card-box">
+                    <div class="filter-container">
+                        <el-input v-model="searchUser" placeholder="Search by name" style="width: 200px;" size="small" clearable @clear="fetchUsers"></el-input>
+                        <el-button type="primary" size="small" icon="el-icon-search" @click="fetchUsers">Search</el-button>
+                        <el-button type="success" size="small" icon="el-icon-plus" @click="openUserDialog('add')">Add User</el-button>
+                        <el-button type="warning" size="small" icon="el-icon-refresh" @click="fetchUsers">Refresh</el-button>
+                    </div>
+
+                    <el-table :data="userList" border stripe v-loading="loading">
+                        <el-table-column prop="id" label="ID" width="80"></el-table-column>
+                        <el-table-column label="Avatar" width="80">
+                            <template slot-scope="scope">
+                                <img v-if="scope.row.avatar && !scope.row.avatar.includes('default-avatar.png')"
+                                     :src="fixAvatarUrl(scope.row.avatar)"
+                                     class="avatar-thumb"
+                                     :alt="scope.row.name"
+                                     @error="handleAvatarError($event, scope.$index)">
+                                <div v-else class="avatar-error">No Avatar</div>
+                            </template>
+                        </el-table-column>
+                        <el-table-column prop="name" label="Name" width="150"></el-table-column>
+                        <el-table-column prop="gender" label="Gender" width="80"></el-table-column>
+                        <el-table-column prop="age" label="Age" width="80"></el-table-column>
+                        <el-table-column prop="balance" label="Balance ($)" width="120">
+                            <template slot-scope="scope">
+                                <span :class="getBalanceClass(scope.row.balance)">
+                                    {{ scope.row.balance.toFixed(2) }}
+                                </span>
+                            </template>
+                        </el-table-column>
+                        <el-table-column label="Password" width="150">
+                            <template slot-scope="scope">
+                                <div class="password-display">{{ scope.row.password }}</div>
+                            </template>
+                        </el-table-column>
+                        <el-table-column label="Actions" width="180">
+                            <template slot-scope="scope">
+                                <el-button size="mini" @click="openUserDialog('edit', scope.row)">Edit</el-button>
+                                <el-button size="mini" type="danger" @click="deleteUser(scope.row)">Delete</el-button>
+                            </template>
+                        </el-table-column>
+                    </el-table>
+                </div>
+
+                <!-- 3. Order Management -->
+                <div v-if="activeIndex === '3'" class="card-box">
+                    <div class="filter-container">
+                        <el-input
+                            v-model="searchOrderNo"
+                            placeholder="Search by order number"
+                            style="width: 200px;"
+                            size="small"
+                            clearable>
+                        </el-input>
+                        <el-input
+                            v-model="searchOrderUserName"
+                            placeholder="Search by user name"
+                            style="width: 200px;"
+                            size="small"
+                            clearable>
+                        </el-input>
+                        <el-button type="primary" size="small" icon="el-icon-search" @click="fetchOrders">Search</el-button>
+                        <el-button type="primary" icon="el-icon-refresh" size="small" @click="fetchOrders">Refresh</el-button>
+                        <el-button type="success" icon="el-icon-plus" size="small" @click="openOrderDialog('add')">New Order</el-button>
+
+                        <span style="margin-left: 20px; color: #666; font-size: 14px;">
+                            Order creation/modification/deletion automatically updates user balance
+                        </span>
+                    </div>
+                    <el-table :data="orderList" border stripe>
+                        <el-table-column prop="order_no" label="Order Number" width="200"></el-table-column>
+                        <el-table-column label="User" width="150">
+                            <template slot-scope="scope">
+                                {{ scope.row.user_name }} (ID:{{ scope.row.user_id }})
+                            </template>
+                        </el-table-column>
+                        <el-table-column prop="total_price" label="Total Amount ($)" width="120">
+                            <template slot-scope="scope">
+                                <span style="color: #f56c6c; font-weight: bold;">{{ scope.row.total_price.toFixed(2) }}</span>
+                            </template>
+                        </el-table-column>
+                        <el-table-column prop="created_at" label="Order Time" width="180"></el-table-column>
+                        <el-table-column label="Food Items">
+                            <template slot-scope="scope">
+                                <el-popover
+                                    placement="top-start"
+                                    width="250"
+                                    trigger="hover">
+                                    <div>
+                                        <div v-for="item in scope.row.items" :key="item.food_id" style="display:flex; align-items: center; margin-bottom: 8px; padding: 5px; background: #f9f9f9; border-radius: 4px;">
+                                            <img v-if="item.image && item.image !== '/static/default-food.png'"
+                                                 :src="fixImageUrl(item.image)"
+                                                 style="width: 40px; height: 40px; object-fit: cover; margin-right: 8px; border-radius: 4px;"
+                                                 @error="handleFoodImageError($event)">
+                                            <div v-else style="width: 40px; height: 40px; background: #f0f0f0; border-radius: 4px; margin-right: 8px; display: flex; align-items: center; justify-content: center; font-size: 10px; color: #999;">No Image</div>
+                                            <div style="flex: 1;">
+                                                <div style="font-weight: 500;">{{ item.food_name }}</div>
+                                                <div style="font-size: 12px; color: #666;">x {{ item.quantity }}</div>
+                                            </div>
+                                            <span style="color: #f56c6c; font-weight: bold;">${{ (item.price * item.quantity).toFixed(2) }}</span>
+                                        </div>
+                                    </div>
+                                    <el-tag size="mini" slot="reference" type="info" style="cursor: pointer;">
+                                        View Details ({{ scope.row.items.length }} items)
+                                    </el-tag>
+                                </el-popover>
+                            </template>
+                        </el-table-column>
+                        <el-table-column label="Actions" width="180">
+                            <template slot-scope="scope">
+                                <el-button type="text" @click="openOrderDialog('edit', scope.row)">Edit</el-button>
+                                <el-button type="text" style="color: red;" @click="deleteOrder(scope.row)">Delete</el-button>
+                            </template>
+                        </el-table-column>
+                    </el-table>
+                </div>
+
+                <!-- 4. Food Inventory - 修复布局 -->
+                <div v-if="activeIndex === '4'" class="card-box">
+                    <div class="filter-container">
+                        <el-input
+                            v-model="searchFoodName"
+                            placeholder="Search by food name"
+                            style="width: 200px;"
+                            size="small"
+                            clearable>
+                        </el-input>
+                        <el-button type="primary" size="small" icon="el-icon-search" @click="fetchFoods">Search</el-button>
+                        <el-button type="success" icon="el-icon-plus" size="small" @click="openFoodDialog('add')">Add Food</el-button>
+                    </div>
+
+                    <el-table :data="foodList" border style="width: 100%;">
+                        <el-table-column prop="id" label="ID" width="70" align="center"></el-table-column>
+                        <el-table-column label="Image" width="90" align="center">
+                            <template slot-scope="scope">
+                                <img v-if="scope.row.image && !scope.row.image.includes('default-food.png')"
+                                     :src="fixImageUrl(scope.row.image)"
+                                     class="food-thumb"
+                                     :alt="scope.row.name"
+                                     @error="handleFoodImageError($event, scope.$index)">
+                                <div v-else class="food-error">
+                                    {{ scope.row.image && scope.row.image.includes('default-food.png') ? 'Default' : 'No Image' }}
+                                </div>
+                            </template>
+                        </el-table-column>
+                        <el-table-column prop="name" label="Food Name" min-width="180" :show-overflow-tooltip="true">
+                            <template slot-scope="scope">
+                                <div class="food-name-cell">{{ scope.row.name }}</div>
+                            </template>
+                        </el-table-column>
+                        <el-table-column prop="price" label="Price ($)" width="110" align="center" class-name="food-price-cell">
+                            <template slot-scope="scope">
+                                <span style="color: #f56c6c; font-weight: bold;">{{ scope.row.price.toFixed(2) }}</span>
+                            </template>
+                        </el-table-column>
+                        <el-table-column prop="stock" label="Stock" width="100" align="center" class-name="food-stock-cell">
+                            <template slot-scope="scope">
+                                <el-tag :type="scope.row.stock > 20 ? 'success' : scope.row.stock > 10 ? 'warning' : 'danger'" size="small">
+                                    {{ scope.row.stock }}
+                                </el-tag>
+                            </template>
+                        </el-table-column>
+                        <el-table-column label="Actions" width="150" align="center">
+                            <template slot-scope="scope">
+                                <el-button size="mini" @click="openFoodDialog('edit', scope.row)">Edit</el-button>
+                                <el-button size="mini" type="danger" @click="deleteFood(scope.row)">Remove</el-button>
+                            </template>
+                        </el-table-column>
+                    </el-table>
+                </div>
+
+                <!-- 5. Employee Management -->
+                <div v-if="activeIndex === '5'" class="card-box">
+                    <div class="filter-container">
+                        <el-input v-model="searchEmployee" placeholder="Search by name" style="width: 200px;" size="small" clearable @clear="fetchEmployees"></el-input>
+                        <el-select v-model="filterPosition" placeholder="Select position" style="width: 150px;" size="small" clearable @change="fetchEmployees">
+                            <el-option label="Cleaner" value="Cleaner"></el-option>
+                            <el-option label="Waiter" value="Waiter"></el-option>
+                            <el-option label="Receptionist" value="Receptionist"></el-option>
+                            <el-option label="Chef" value="Chef"></el-option>
+                            <el-option label="Manager" value="Manager"></el-option>
+                        </el-select>
+                        <el-button type="primary" size="small" icon="el-icon-search" @click="fetchEmployees">Search</el-button>
+                        <el-button type="success" size="small" icon="el-icon-plus" @click="openEmployeeDialog('add')">Add Employee</el-button>
+                        <el-button type="warning" size="small" icon="el-icon-refresh" @click="fetchEmployees">Refresh</el-button>
+                    </div>
+                    <el-table :data="employeeList" border stripe v-loading="employeeLoading">
+                        <el-table-column prop="id" label="ID" width="80"></el-table-column>
+                        <el-table-column prop="name" label="Name" width="120"></el-table-column>
+                        <el-table-column prop="gender" label="Gender" width="80"></el-table-column>
+                        <el-table-column prop="position" label="Position" width="100">
+                            <template slot-scope="scope">
+                                <el-tag :type="getPositionTagType(scope.row.position)" size="small" class="position-tag">
+                                    {{ scope.row.position }}
+                                </el-tag>
+                            </template>
+                        </el-table-column>
+                        <el-table-column prop="work_days" label="Work Days" width="100"></el-table-column>
+                        <el-table-column prop="monthly_salary" label="Monthly Salary ($)" width="120">
+                            <template slot-scope="scope">
+                                <span :class="getSalaryClass(scope.row.monthly_salary)">
+                                    {{ scope.row.monthly_salary.toFixed(2) }}
+                                </span>
+                            </template>
+                        </el-table-column>
+                        <el-table-column label="Daily Salary ($)" width="120">
+                            <template slot-scope="scope">
+                                <div class="salary-info">{{ scope.row.daily_salary.toFixed(2) }}</div>
+                            </template>
+                        </el-table-column>
+                        <el-table-column label="Total Salary ($)" width="120">
+                            <template slot-scope="scope">
+                                <div class="salary-info" :class="getSalaryClass(scope.row.total_salary)">
+                                    {{ scope.row.total_salary.toFixed(2) }}
+                                </div>
+                            </template>
+                        </el-table-column>
+                        <el-table-column prop="created_at" label="Created At" width="180"></el-table-column>
+                        <el-table-column label="Actions" width="180">
+                            <template slot-scope="scope">
+                                <el-button size="mini" @click="openEmployeeDialog('edit', scope.row)">Edit</el-button>
+                                <el-button size="mini" type="danger" @click="deleteEmployee(scope.row)">Delete</el-button>
+                            </template>
+                        </el-table-column>
+                    </el-table>
+
+                    <!-- Salary Statistics -->
+                    <div style="margin-top: 20px; padding: 15px; background-color: #f8f9fa; border-radius: 4px;">
+                        <h4 style="margin-top: 0; margin-bottom: 10px;">Salary Statistics</h4>
+                        <el-row :gutter="20">
+                            <el-col :span="6">
+                                <div style="text-align: center;">
+                                    <div style="color: #909399; font-size: 14px;">Total Employees</div>
+                                    <div style="font-size: 24px; font-weight: bold; color: #409EFF;">{{ employeeList.length }}</div>
+                                </div>
+                            </el-col>
+                            <el-col :span="6">
+                                <div style="text-align: center;">
+                                    <div style="color: #909399; font-size: 14px;">Total Salary Expense</div>
+                                    <div style="font-size: 24px; font-weight: bold; color: #F56C6C;">
+                                        ${{ calculateTotalSalary().toFixed(2) }}
+                                    </div>
+                                </div>
+                            </el-col>
+                            <el-col :span="6">
+                                <div style="text-align: center;">
+                                    <div style="color: #909399; font-size: 14px;">Avg Monthly Salary</div>
+                                    <div style="font-size: 24px; font-weight: bold; color: #E6A23C;">
+                                        ${{ calculateAvgMonthlySalary().toFixed(2) }}
+                                    </div>
+                                </div>
+                            </el-col>
+                            <el-col :span="6">
+                                <div style="text-align: center;">
+                                    <div style="color: #909399; font-size: 14px;">Avg Work Days</div>
+                                    <div style="font-size: 24px; font-weight: bold; color: #67C23A;">
+                                        {{ calculateAvgWorkDays().toFixed(1) }} days
+                                    </div>
+                                </div>
+                            </el-col>
+                        </el-row>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- ================== Dialog Area ================== -->
+
+        <!-- User Dialog -->
+        <el-dialog :title="userDialog.title" :visible.sync="userDialog.visible" width="600px" @close="resetUserForm">
+            <el-form :model="userForm" label-width="80px">
+                <div class="avatar-uploader">
+                    <el-upload
+                        class="avatar-upload"
+                        :action="uploadAction"
+                        :show-file-list="false"
+                        :on-success="handleAvatarSuccess"
+                        :on-error="handleAvatarUploadError"
+                        :before-upload="beforeAvatarUpload"
+                        :headers="uploadHeaders"
+                        :data="getUserUploadData">
+                        <img v-if="userForm.avatar && !userForm.avatar.includes('default-avatar.png')"
+                             :src="fixAvatarUrl(userForm.avatar)"
+                             class="avatar-preview"
+                             @error="handleAvatarError($event, -1)">
+                        <i v-else class="el-icon-plus avatar-uploader-icon"></i>
+                    </el-upload>
+                    <div style="margin-top: 10px; color: #909399; font-size: 12px; text-align: center;">
+                        Click to upload avatar, supports JPG/PNG/GIF format, max 2MB
+                    </div>
+                </div>
+
+                <el-form-item label="Name" required>
+                    <el-input v-model="userForm.name" placeholder="Enter user name"></el-input>
+                </el-form-item>
+                <el-form-item label="Gender">
+                    <el-radio-group v-model="userForm.gender">
+                        <el-radio label="Male"></el-radio><el-radio label="Female"></el-radio>
+                    </el-radio-group>
+                </el-form-item>
+                <el-form-item label="Age">
+                    <el-input-number v-model="userForm.age" :min="1" :max="120" style="width: 100%;"></el-input-number>
+                </el-form-item>
+                <el-form-item label="Balance">
+                    <el-input-number v-model="userForm.balance" :precision="2" :min="0" :step="10" style="width: 100%;"></el-input-number>
+                </el-form-item>
+                <el-form-item label="Password">
+                    <el-input v-model="userForm.password"
+                              :placeholder="userDialog.type === 'add' ? 'Enter password' : 'Leave empty to keep current'"
+                              show-password
+                              style="width: 100%;"></el-input>
+                </el-form-item>
+            </el-form>
+            <span slot="footer">
+                <el-button @click="userDialog.visible = false">Cancel</el-button>
+                <el-button type="primary" @click="saveUser">Confirm</el-button>
+            </span>
+        </el-dialog>
+
+        <!-- Food Dialog -->
+        <el-dialog :title="foodDialog.title" :visible.sync="foodDialog.visible" width="600px">
+            <el-form :model="foodForm" label-width="80px">
+                <!-- Food Image Upload Area -->
+                <el-form-item label="Food Image">
+                    <div class="food-image-uploader">
+                        <el-upload
+                            class="food-image-upload"
+                            :action="foodUploadAction"
+                            :show-file-list="false"
+                            :on-success="handleFoodImageSuccess"
+                            :on-error="handleFoodImageUploadError"
+                            :before-upload="beforeFoodImageUpload"
+                            :headers="uploadHeaders"
+                            :data="getFoodUploadData">
+                            <img v-if="foodForm.image" :src="fixImageUrl(foodForm.image)" class="food-preview" @error="handleFoodImageError($event)">
+                            <i v-else class="el-icon-plus food-uploader-icon"></i>
+                        </el-upload>
+                        <div style="margin-top: 10px; color: #909399; font-size: 12px; text-align: center;">
+                            Click to upload food image, supports JPG/PNG/GIF/WEBP format, max 2MB
+                        </div>
+                    </div>
+                </el-form-item>
+
+                <el-form-item label="Food Name" required>
+                    <el-input v-model="foodForm.name" placeholder="Enter food name"></el-input>
+                </el-form-item>
+                <el-form-item label="Price" required>
+                    <el-input-number v-model="foodForm.price" :precision="2" :min="0" style="width: 100%;"></el-input-number>
+                </el-form-item>
+                <el-form-item label="Stock">
+                    <el-input-number v-model="foodForm.stock" :min="0" style="width: 100%;"></el-input-number>
+                </el-form-item>
+            </el-form>
+            <span slot="footer">
+                <el-button @click="foodDialog.visible = false">Cancel</el-button>
+                <el-button type="primary" @click="saveFood">Confirm</el-button>
+            </span>
+        </el-dialog>
+
+        <!-- Order Dialog -->
+        <el-dialog :title="orderDialog.title" :visible.sync="orderDialog.visible" width="700px">
+            <el-form :model="orderForm" label-width="80px">
+                <el-form-item label="Customer" required>
+                    <el-select v-model="orderForm.user_id" placeholder="Select user" filterable style="width: 100%;">
+                        <el-option v-for="u in userList" :key="u.id" :label="u.name" :value="u.id">
+                            <div style="display: flex; align-items: center;">
+                                <img v-if="u.avatar && u.avatar !== '/static/default-avatar.png'"
+                                     :src="fixAvatarUrl(u.avatar)"
+                                     style="width: 30px; height: 30px; border-radius: 50%; margin-right: 10px;"
+                                     @error="handleAvatarError($event)">
+                                <div v-else class="avatar-error" style="width: 30px; height: 30px; margin-right: 10px; font-size: 10px;">No</div>
+                                <span>{{ u.name }}</span>
+                                <span style="margin-left: auto; color: #8492a6; font-size: 13px">Balance: ${{ u.balance.toFixed(2) }}</span>
+                            </div>
+                        </el-option>
+                    </el-select>
+                </el-form-item>
+
+                <el-form-item label="Select Food Items">
+                    <el-button type="text" icon="el-icon-plus" @click="addOrderItem">Add Item</el-button>
+                    <div v-for="(item, index) in orderForm.items" :key="index" style="display: flex; margin-bottom: 10px; gap: 10px; align-items: center;">
+                        <el-select v-model="item.food_id" placeholder="Food Item" filterable style="flex: 1;">
+                            <el-option v-for="f in foodList" :key="f.id" :label="f.name + ' ($' + f.price.toFixed(2) + ')'" :value="f.id"></el-option>
+                        </el-select>
+                        <el-input-number v-model="item.quantity" :min="1" label="Quantity" size="small" style="width: 100px;"></el-input-number>
+                        <el-button type="danger" icon="el-icon-delete" circle size="small" @click="removeOrderItem(index)"></el-button>
+                    </div>
+                    <div style="margin-top: 10px; padding: 10px; background-color: #f5f5f5; border-radius: 4px;">
+                        <span style="font-weight: bold;">Order Total: ${{ calculateOrderTotal().toFixed(2) }}</span>
+                        <span v-if="orderForm.user_id" style="margin-left: 20px;">
+                            User Balance: ${{ getUserBalance(orderForm.user_id).toFixed(2) }}
+                            <span v-if="getUserBalance(orderForm.user_id) < calculateOrderTotal()" style="color: red; margin-left: 10px;">
+                                (Insufficient Balance!)
+                            </span>
+                        </span>
+                    </div>
+                </el-form-item>
+            </el-form>
+            <span slot="footer">
+                <el-button @click="orderDialog.visible = false">Cancel</el-button>
+                <el-button type="primary" @click="saveOrder" :disabled="!orderForm.user_id || calculateOrderTotal() <= 0">Submit Order</el-button>
+            </span>
+        </el-dialog>
+
+        <!-- Employee Dialog -->
+        <el-dialog :title="employeeDialog.title" :visible.sync="employeeDialog.visible" width="500px">
+            <el-form :model="employeeForm" label-width="100px">
+                <el-form-item label="Name" required>
+                    <el-input v-model="employeeForm.name" placeholder="Enter employee name"></el-input>
+                </el-form-item>
+                <el-form-item label="Gender">
+                    <el-radio-group v-model="employeeForm.gender">
+                        <el-radio label="Male"></el-radio>
+                        <el-radio label="Female"></el-radio>
+                    </el-radio-group>
+                </el-form-item>
+                <el-form-item label="Position" required>
+                    <el-select v-model="employeeForm.position" placeholder="Select position" style="width: 100%;">
+                        <el-option label="Cleaner" value="Cleaner"></el-option>
+                        <el-option label="Waiter" value="Waiter"></el-option>
+                        <el-option label="Receptionist" value="Receptionist"></el-option>
+                        <el-option label="Chef" value="Chef"></el-option>
+                        <el-option label="Manager" value="Manager"></el-option>
+                    </el-select>
+                </el-form-item>
+                <el-form-item label="Work Days">
+                    <el-input-number v-model="employeeForm.work_days" :min="0" :max="31" style="width: 100%;"></el-input-number>
+                    <div style="font-size: 12px; color: #909399; margin-top: 5px;">
+                        Maximum 31 days per month, salary calculated based on actual work days
+                    </div>
+                </el-form-item>
+                <el-form-item label="Monthly Salary ($)">
+                    <el-input-number v-model="employeeForm.monthly_salary" :min="0" :precision="2" :step="100" style="width: 100%;"></el-input-number>
+                    <div style="font-size: 12px; color: #909399; margin-top: 5px;">
+                        {{ getPositionSalaryHint(employeeForm.position) }}
+                    </div>
+                </el-form-item>
+                <el-form-item label="Daily Salary ($)" v-if="employeeForm.monthly_salary">
+                    <el-input :value="calculateDailySalary()" readonly style="width: 100%;">
+                        <template slot="append">per day</template>
+                    </el-input>
+                </el-form-item>
+                <el-form-item label="Total Salary ($)" v-if="employeeForm.monthly_salary && employeeForm.work_days">
+                    <el-input :value="calculateTotalEmployeeSalary()" readonly style="width: 100%;">
+                        <template slot="append">total</template>
+                    </el-input>
+                </el-form-item>
+            </el-form>
+            <span slot="footer">
+                <el-button @click="employeeDialog.visible = false">Cancel</el-button>
+                <el-button type="primary" @click="saveEmployee">Confirm</el-button>
+            </span>
+        </el-dialog>
+
+    </div>
+
+    <script>
+        new Vue({
+            el: '#app',
+            data: {
+                activeIndex: '1',
+                currentTitle: 'Dashboard',
+                stats: {
+                    user_count: 0,
+                    order_count: 0,
+                    total_sales: 0,
+                    food_count: 0,
+                    employee_count: 0,
+                    total_salary_expense: 0
+                },
+                loading: false,
+                employeeLoading: false,
+
+                // Data lists
+                userList: [],
+                foodList: [],
+                orderList: [],
+                employeeList: [],
+
+                // Search and filter
+                searchUser: '',
+                searchEmployee: '',
+                filterPosition: '',
+                searchOrderNo: '',
+                searchOrderUserName: '',
+                searchFoodName: '',
+
+                // Dialog and form states
+                userDialog: { visible: false, title: 'Add User', type: 'add' },
+                userForm: { id: null, name: '', gender: 'Male', age: 20, balance: 100, password: '', avatar: '' },
+
+                foodDialog: { visible: false, title: 'Add Food', type: 'add' },
+                foodForm: { id: null, name: '', price: 0, stock: 0, image: '' },
+
+                orderDialog: { visible: false, title: 'New Order', type: 'add' },
+                orderForm: { id: null, user_id: '', items: [] },
+
+                employeeDialog: { visible: false, title: 'Add Employee', type: 'add' },
+                employeeForm: { id: null, name: '', gender: 'Male', position: 'Waiter', work_days: 0, monthly_salary: 3500 },
+
+                // Upload related
+                uploadHeaders: {},
+                uploadAction: '/api/upload_avatar',
+
+                // Food image upload related
+                foodUploadAction: '/api/upload_food_image',
+            },
+            created() {
+                this.fetchStats();
+                // Preload basic data
+                this.fetchUsers();
+                this.fetchFoods();
+                this.fetchOrders();
+                this.fetchEmployees();
+            },
+            computed: {
+                getUserUploadData() {
+                    return { user_id: this.userForm.id || '0' };
+                },
+                getFoodUploadData() {
+                    return { food_id: this.foodForm.id || '0' };
+                }
+            },
+            methods: {
+                // Menu switching
+                handleMenuSelect(index) {
+                    this.activeIndex = index;
+                    const titles = {
+                        '1': 'Dashboard',
+                        '2': 'User Management',
+                        '3': 'Order Management',
+                        '4': 'Food Inventory',
+                        '5': 'Employee Management'
+                    };
+                    this.currentTitle = titles[index];
+                },
+
+                // Get statistics
+                async fetchStats() {
+                    try {
+                        const res = await axios.get('/api/stats');
+                        this.stats = res.data;
+                    } catch (err) {
+                        this.$message.error('Failed to fetch statistics');
+                    }
+                },
+
+                // User Management
+                async fetchUsers() {
+                    this.loading = true;
+                    try {
+                        const res = await axios.get('/api/users', {
+                            params: { name: this.searchUser }
+                        });
+                        this.userList = res.data;
+                        console.log('User list loaded:', this.userList.length, 'records');
+                    } catch (err) {
+                        console.error('Failed to fetch user list:', err);
+                        this.$message.error('Failed to fetch user list');
+                    }
+                    this.loading = false;
+                },
+
+                openUserDialog(type, row = null) {
+                    this.userDialog.type = type;
+                    this.userDialog.title = type === 'add' ? 'Add User' : 'Edit User';
+
+                    if (type === 'edit' && row) {
+                        this.userForm = { ...row };
+                        // Convert gender to English
+                        this.userForm.gender = this.userForm.gender === '男' ? 'Male' : 'Female';
+                        console.log('Edit user, ID:', this.userForm.id, 'Avatar:', this.userForm.avatar);
+                    } else {
+                        this.userForm = { id: null, name: '', gender: 'Male', age: 20, balance: 100, password: '', avatar: '' };
+                    }
+
+                    this.userDialog.visible = true;
+                },
+
+                resetUserForm() {
+                    // Reset form when dialog closes
+                    this.userForm = { id: null, name: '', gender: 'Male', age: 20, balance: 100, password: '', avatar: '' };
+                },
+
+                async saveUser() {
+                    try {
+                        // Validate required fields
+                        if (!this.userForm.name) {
+                            this.$message.warning('Please enter user name');
+                            return;
+                        }
+
+                        // Ensure avatar URL is in fixed format
+                        if (this.userForm.avatar) {
+                            this.userForm.avatar = this.fixAvatarUrl(this.userForm.avatar);
+                        }
+
+                        // Convert gender back to Chinese for backend
+                        const userData = { ...this.userForm };
+                        userData.gender = userData.gender === 'Male' ? 'Male' : 'Female';
+
+                        if (this.userDialog.type === 'add') {
+                            await axios.post('/api/users', userData);
+                            this.$message.success('User added successfully');
+                        } else {
+                            await axios.put(`/api/users/${userData.id}`, userData);
+                            this.$message.success('User updated successfully');
+                        }
+                        this.userDialog.visible = false;
+                        this.fetchUsers();
+                        this.fetchStats();
+                    } catch (err) {
+                        console.error('Failed to save user:', err);
+                        this.$message.error('Failed to save user: ' + (err.response?.data?.error || 'Unknown error'));
+                    }
+                },
+
+                async deleteUser(row) {
+                    try {
+                        await this.$confirm('Are you sure to delete this user?', 'Confirm', {
+                            type: 'warning'
+                        });
+                        await axios.delete(`/api/users/${row.id}`);
+                        this.$message.success('Deleted successfully');
+                        this.fetchUsers();
+                        this.fetchStats();
+                    } catch (err) {
+                        if (err !== 'cancel') {
+                            this.$message.error('Failed to delete');
+                        }
+                    }
+                },
+
+                // Food Management
+                async fetchFoods() {
+                    try {
+                        const res = await axios.get('/api/foods', {
+                            params: { name: this.searchFoodName }
+                        });
+                        this.foodList = res.data;
+                    } catch (err) {
+                        this.$message.error('Failed to fetch food list');
+                    }
+                },
+
+                openFoodDialog(type, row = null) {
+                    this.foodDialog.type = type;
+                    this.foodDialog.title = type === 'add' ? 'Add Food' : 'Edit Food';
+
+                    if (type === 'edit' && row) {
+                        this.foodForm = { ...row };
+                    } else {
+                        this.foodForm = { id: null, name: '', price: 0, stock: 0, image: '' };
+                    }
+
+                    this.foodDialog.visible = true;
+                },
+
+                async saveFood() {
+                    try {
+                        if (!this.foodForm.name) {
+                            this.$message.warning('Please enter food name');
+                            return;
+                        }
+
+                        if (this.foodDialog.type === 'add') {
+                            await axios.post('/api/foods', this.foodForm);
+                            this.$message.success('Food added successfully');
+                        } else {
+                            await axios.put(`/api/foods/${this.foodForm.id}`, this.foodForm);
+                            this.$message.success('Food updated successfully');
+                        }
+                        this.foodDialog.visible = false;
+                        this.fetchFoods();
+                        this.fetchStats();
+                    } catch (err) {
+                        this.$message.error('Failed to save food');
+                    }
+                },
+
+                async deleteFood(row) {
+                    try {
+                        await this.$confirm('Are you sure to delete this food item?', 'Confirm', {
+                            type: 'warning'
+                        });
+                        await axios.delete(`/api/foods/${row.id}`);
+                        this.$message.success('Deleted successfully');
+                        this.fetchFoods();
+                        this.fetchStats();
+                    } catch (err) {
+                        if (err !== 'cancel') {
+                            this.$message.error('Failed to delete');
+                        }
+                    }
+                },
+
+                // Order Management
+                async fetchOrders() {
+                    try {
+                        const res = await axios.get('/api/orders', {
+                            params: {
+                                order_no: this.searchOrderNo,
+                                user_name: this.searchOrderUserName
+                            }
+                        });
+                        this.orderList = res.data;
+                    } catch (err) {
+                        this.$message.error('Failed to fetch order list');
+                    }
+                },
+
+                openOrderDialog(type, row = null) {
+                    this.orderDialog.type = type;
+                    this.orderDialog.title = type === 'add' ? 'New Order' : 'Edit Order';
+
+                    if (type === 'edit' && row) {
+                        this.orderForm = {
+                            id: row.id,
+                            user_id: row.user_id,
+                            items: row.items.map(item => ({
+                                food_id: item.food_id,
+                                quantity: item.quantity
+                            }))
+                        };
+                    } else {
+                        this.orderForm = { id: null, user_id: '', items: [] };
+                    }
+
+                    this.orderDialog.visible = true;
+                },
+
+                addOrderItem() {
+                    this.orderForm.items.push({ food_id: '', quantity: 1 });
+                },
+
+                removeOrderItem(index) {
+                    this.orderForm.items.splice(index, 1);
+                },
+
+                calculateOrderTotal() {
+                    let total = 0;
+                    for (let item of this.orderForm.items) {
+                        const food = this.foodList.find(f => f.id === item.food_id);
+                        if (food) {
+                            total += food.price * item.quantity;
+                        }
+                    }
+                    return total;
+                },
+
+                getUserBalance(userId) {
+                    const user = this.userList.find(u => u.id === userId);
+                    return user ? user.balance : 0;
+                },
+
+                async saveOrder() {
+                    try {
+                        // Validation
+                        if (!this.orderForm.user_id) {
+                            this.$message.warning('Please select a customer');
+                            return;
+                        }
+
+                        if (this.orderForm.items.length === 0) {
+                            this.$message.warning('Please select at least one food item');
+                            return;
+                        }
+
+                        // Check user balance
+                        const total = this.calculateOrderTotal();
+                        const userBalance = this.getUserBalance(this.orderForm.user_id);
+                        if (userBalance < total) {
+                            this.$message.error('Insufficient user balance');
+                            return;
+                        }
+
+                        if (this.orderDialog.type === 'add') {
+                            await axios.post('/api/orders', this.orderForm);
+                            this.$message.success('Order created successfully');
+                        } else {
+                            await axios.put(`/api/orders/${this.orderForm.id}`, this.orderForm);
+                            this.$message.success('Order updated successfully');
+                        }
+                        this.orderDialog.visible = false;
+                        this.fetchOrders();
+                        this.fetchUsers();
+                        this.fetchStats();
+                    } catch (err) {
+                        this.$message.error(err.response?.data?.error || 'Failed to save order');
+                    }
+                },
+
+                async deleteOrder(row) {
+                    try {
+                        await this.$confirm('Are you sure to delete this order?', 'Confirm', {
+                            type: 'warning'
+                        });
+                        await axios.delete(`/api/orders/${row.id}`);
+                        this.$message.success('Deleted successfully');
+                        this.fetchOrders();
+                        this.fetchUsers();
+                        this.fetchStats();
+                    } catch (err) {
+                        if (err !== 'cancel') {
+                            this.$message.error('Failed to delete');
+                        }
+                    }
+                },
+
+                // Employee Management
+                async fetchEmployees() {
+                    this.employeeLoading = true;
+                    try {
+                        const res = await axios.get('/api/employees', {
+                            params: {
+                                name: this.searchEmployee,
+                                position: this.filterPosition
+                            }
+                        });
+                        this.employeeList = res.data;
+                    } catch (err) {
+                        this.$message.error('Failed to fetch employee list');
+                    }
+                    this.employeeLoading = false;
+                },
+
+                openEmployeeDialog(type, row = null) {
+                    this.employeeDialog.type = type;
+                    this.employeeDialog.title = type === 'add' ? 'Add Employee' : 'Edit Employee';
+
+                    if (type === 'edit' && row) {
+                        this.employeeForm = { ...row };
+                        // Convert gender to English
+                        this.employeeForm.gender = this.employeeForm.gender === '男' ? 'Male' : 'Female';
+                    } else {
+                        this.employeeForm = {
+                            id: null,
+                            name: '',
+                            gender: 'Male',
+                            position: 'Waiter',
+                            work_days: 0,
+                            monthly_salary: 3500
+                        };
+                    }
+
+                    this.employeeDialog.visible = true;
+                },
+
+                async saveEmployee() {
+                    try {
+                        if (!this.employeeForm.name) {
+                            this.$message.warning('Please enter employee name');
+                            return;
+                        }
+
+                        if (!this.employeeForm.position) {
+                            this.$message.warning('Please select position');
+                            return;
+                        }
+
+                        // Convert gender back to Chinese for backend
+                        const employeeData = { ...this.employeeForm };
+                        employeeData.gender = employeeData.gender === 'Male' ? '男' : '女';
+
+                        if (this.employeeDialog.type === 'add') {
+                            await axios.post('/api/employees', employeeData);
+                            this.$message.success('Employee added successfully');
+                        } else {
+                            await axios.put(`/api/employees/${employeeData.id}`, employeeData);
+                            this.$message.success('Employee updated successfully');
+                        }
+                        this.employeeDialog.visible = false;
+                        this.fetchEmployees();
+                        this.fetchStats();
+                    } catch (err) {
+                        this.$message.error('Failed to save employee');
+                    }
+                },
+
+                async deleteEmployee(row) {
+                    try {
+                        await this.$confirm('Are you sure to delete this employee?', 'Confirm', {
+                            type: 'warning'
+                        });
+                        await axios.delete(`/api/employees/${row.id}`);
+                        this.$message.success('Deleted successfully');
+                        this.fetchEmployees();
+                        this.fetchStats();
+                    } catch (err) {
+                        if (err !== 'cancel') {
+                            this.$message.error('Failed to delete');
+                        }
+                    }
+                },
+
+                calculateDailySalary() {
+                    return this.employeeForm.monthly_salary ? (this.employeeForm.monthly_salary / 30).toFixed(2) : 0;
+                },
+
+                calculateTotalEmployeeSalary() {
+                    const daily = this.employeeForm.monthly_salary / 30;
+                    return (daily * this.employeeForm.work_days).toFixed(2);
+                },
+
+                calculateTotalSalary() {
+                    return this.employeeList.reduce((total, emp) => total + emp.total_salary, 0);
+                },
+
+                calculateAvgMonthlySalary() {
+                    if (this.employeeList.length === 0) return 0;
+                    const total = this.employeeList.reduce((sum, emp) => sum + emp.monthly_salary, 0);
+                    return total / this.employeeList.length;
+                },
+
+                calculateAvgWorkDays() {
+                    if (this.employeeList.length === 0) return 0;
+                    const total = this.employeeList.reduce((sum, emp) => sum + emp.work_days, 0);
+                    return total / this.employeeList.length;
+                },
+
+                getPositionTagType(position) {
+                    const types = {
+                        'Cleaner': 'info',
+                        'Waiter': '',
+                        'Receptionist': 'warning',
+                        'Chef': 'success',
+                        'Manager': 'danger'
+                    };
+                    return types[position] || '';
+                },
+
+                getSalaryClass(salary) {
+                    if (salary >= 5000) return 'salary-high';
+                    if (salary >= 3000) return 'salary-medium';
+                    return 'salary-low';
+                },
+
+                getBalanceClass(balance) {
+                    if (balance >= 100) return 'balance-positive';
+                    if (balance >= 50) return 'balance-low';
+                    return 'balance-negative';
+                },
+
+                getPositionSalaryHint(position) {
+                    const hints = {
+                        'Cleaner': 'Reference range: $2500-$3500',
+                        'Waiter': 'Reference range: $3000-$4000',
+                        'Receptionist': 'Reference range: $2800-$3800',
+                        'Chef': 'Reference range: $5000-$8000',
+                        'Manager': 'Reference range: $6000-$10000'
+                    };
+                    return hints[position] || 'Please enter a reasonable salary';
+                },
+
+                // ========== Avatar Handling Methods ==========
+                fixAvatarUrl(url) {
+                    if (!url) {
+                        return '/static/default-avatar.png';
+                    }
+
+                    // If already a full URL, return directly
+                    if (url.startsWith('http://') || url.startsWith('https://')) {
+                        return url;
+                    }
+
+                    // If relative path, return directly
+                    if (url.startsWith('/')) {
+                        return url;
+                    }
+
+                    // If file path, convert to URL
+                    if (url.includes('uploads/') && !url.startsWith('/uploads/')) {
+                        return '/' + url;
+                    }
+
+                    // If just filename, assume in uploads/avatars directory
+                    if (!url.includes('/') && url.includes('.')) {
+                        return '/uploads/avatars/' + url;
+                    }
+
+                    return url;
+                },
+
+                handleAvatarError(event, index) {
+                    console.log('Avatar image load error:', event.target.src);
+
+                    // Show default avatar
+                    event.target.src = '/static/default-avatar.png';
+
+                    // Add error style
+                    event.target.style.border = '2px solid #ff6b6b';
+                },
+
+                // Avatar upload related methods
+                handleAvatarSuccess(res, file) {
+                    console.log('Avatar upload success response:', res);
+                    if (res.url) {
+                        this.userForm.avatar = res.url;
+                        this.$message.success('Avatar uploaded successfully');
+
+                        // Force view update
+                        this.$forceUpdate();
+
+                        // If in edit mode, update avatar in user list
+                        if (this.userForm.id) {
+                            const userIndex = this.userList.findIndex(u => u.id === this.userForm.id);
+                            if (userIndex !== -1) {
+                                this.userList[userIndex].avatar = res.url;
+                            }
+                        }
+
+                        // Delay refetching data to ensure avatar display
+                        setTimeout(() => {
+                            this.fetchUsers();
+                        }, 300);
+                    } else {
+                        this.$message.error('Upload successful but cannot get avatar URL');
+                    }
+                },
+
+                handleAvatarUploadError(err, file) {
+                    console.log('Avatar upload failed:', err);
+                    this.$message.error('Avatar upload failed: ' + (err.message || 'Unknown error'));
+                },
+
+                beforeAvatarUpload(file) {
+                    console.log('Preparing to upload avatar:', file.name, 'Size:', file.size, 'Type:', file.type);
+
+                    const isImage = file.type.startsWith('image/');
+                    const isLt2M = file.size / 1024 / 1024 < 2;
+
+                    if (!isImage) {
+                        this.$message.error('Only image files are allowed!');
+                        return false;
+                    }
+                    if (!isLt2M) {
+                        this.$message.error('Image size cannot exceed 2MB!');
+                        return false;
+                    }
+
+                    return true;
+                },
+
+                // ========== Food Image Handling Methods ==========
+                fixImageUrl(url) {
+                    if (!url) {
+                        return '/static/default-food.png';
+                    }
+
+                    if (url.startsWith('http://') || url.startsWith('https://')) {
+                        return url;
+                    }
+
+                    if (url.startsWith('/')) {
+                        return url;
+                    }
+
+                    if (url.includes('food_images/') || url.includes('uploads/')) {
+                        return '/' + url;
+                    }
+
+                    return url;
+                },
+
+                handleFoodImageError(event, index) {
+                    console.log('Food image load error:', event.target.src);
+
+                    // Show default image
+                    event.target.src = '/static/default-food.png';
+
+                    // Add error style
+                    event.target.style.border = '2px solid #ff6b6b';
+                },
+
+                handleFoodImageSuccess(res, file) {
+                    console.log('Food image upload success response:', res);
+                    if (res.url) {
+                        this.foodForm.image = res.url;
+                        this.$message.success('Food image uploaded successfully');
+
+                        // Force view update
+                        this.$forceUpdate();
+
+                        // Delay refetching data to ensure image display
+                        setTimeout(() => {
+                            this.fetchFoods();
+                        }, 300);
+                    } else {
+                        this.$message.error('Upload successful but cannot get image URL');
+                    }
+                },
+
+                handleFoodImageUploadError(err, file) {
+                    console.log('Food image upload failed:', err);
+                    this.$message.error('Food image upload failed');
+                },
+
+                beforeFoodImageUpload(file) {
+                    console.log('Preparing to upload food image:', file.name, 'Size:', file.size, 'Type:', file.type);
+
+                    const isImage = file.type.startsWith('image/');
+                    const isLt2M = file.size / 1024 / 1024 < 2;
+
+                    if (!isImage) {
+                        this.$message.error('Only image files are allowed!');
+                        return false;
+                    }
+                    if (!isLt2M) {
+                        this.$message.error('Image size cannot exceed 2MB!');
+                        return false;
+                    }
+
+                    return true;
+                },
+            }
+        });
+    </script>
+</body>
+</html>
