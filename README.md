@@ -1,73 +1,74 @@
 # Restaurant Management System
 
-这是一个基于 **Flask + Vue.js** 开发的餐厅综合管理系统。本项目采用前后端分离的开发思想（前端通过 CDN 引入 Vue 和 Element UI），实现了用户管理、菜品库存管理、点餐下单以及员工薪资核算等核心功能。
+A comprehensive restaurant management system built on **Flask + Vue.js**. This project adopts a decoupled architecture (Frontend imports Vue and Element UI via CDN) and implements core functionalities including user management, inventory control, order processing, and employee payroll calculation.
 
-##  技术
+## Tech Stack
 
-* **后端**：Python 3, Flask, SQLAlchemy (ORM)
-* **前端**：Vue.js 2, Element UI, Axios
-* **数据库**：DB Browser for SQLite 
+* **Backend:** Python 3, Flask, SQLAlchemy (ORM)
+* **Frontend:** Vue.js 2, Element UI, Axios
+* **Database:** SQLite (Managed/Viewed via DB Browser for SQLite)
 
-## 功能
+## Features
 
-本项目主要包含以下模块：
+This project includes the following modules:
 
-### 1.Dashboard
-* 实现了核心数据的可视化展示，包括用户总数、订单数、总销售额等。
-* 后端通过聚合查询实时计算各项统计指标。
+### 1. Dashboard
+* **Data Visualization:** Visualizes core data including total users, total orders, and total sales revenue.
+* **Real-time Analytics:** Backend performs aggregate queries to calculate statistical indicators in real-time.
 
-### 2.User Module
-* **基本操作**：实现了用户的增删改查。
-* **头像上传**：支持用户上传本地图片作为头像，后端自动保存至 `uploads/avatars` 目录并生成访问 URL。
-* **余额系统**：模拟了充值和消费逻辑，管理员可手动修改余额。
+### 2. User Module
+* **CRUD Operations:** Implements Create, Read, Update, and Delete functionality for users.
+* **Avatar Upload:** Supports local image uploads for user avatars. The backend automatically saves files to the `uploads/avatars` directory and generates access URLs.
+* **Balance System:** Simulates logic for top-ups and consumption. Administrators can manually modify user balances.
 
-### 3.Food Inventory
-* 支持菜品图片上传与预览（支持 JPG/PNG/WebP 格式）。
-* **库存管理**：下单时会自动检查库存，库存不足时无法创建订单，防止超卖。
+### 3. Food Inventory
+* **Image Management:** Supports uploading and previewing food images (JPG/PNG/WebP formats).
+* **Inventory Control:** Automatically checks stock levels during order placement. Creation of orders is blocked if stock is insufficient to prevent overselling.
 
-### 4.Order System
-* **事务处理**：
-    * 下单时自动扣除用户余额。
-    * 同时扣减对应菜品的库存。
-    * 包含完整的事务回滚机制：如果余额不足或库存不足，操作会自动取消，保证数据一致性。
-* 支持多条件搜索（订单号、用户名）。
+### 4. Order System
+* **Transaction Processing:**
+    * Automatically deducts the user's balance upon ordering.
+    * Simultaneously deducts the stock of the corresponding food items.
+    * **Atomic Transactions:** Includes a full rollback mechanism. If the balance or stock is insufficient, the operation is automatically cancelled to ensure data consistency.
+* **Search:** Supports multi-condition searching (by Order ID, Username).
 
 ### 5. Employee & Salary
-* 设计了员工职位与薪资模型。
-* **自动计算**：前端根据录入的“月薪”和“实际工作天数”，自动计算出日薪和当月应发总工资，方便财务核算。
+* **Modeling:** Designed data models for employee roles and salaries.
+* **Auto-Calculation:** The frontend automatically calculates the daily rate and total monthly payable salary based on the input "Monthly Salary" and "Actual Working Days," facilitating financial accounting.
 
-##  如何运行项目
+## How to Run
 
-### 1. 环境配置
-确保本地已安装 Python 3.8+。
-建议创建虚拟环境，然后安装项目依赖：
+### 1. Environment Setup
+Ensure **Python 3.8+** is installed locally.
+It is recommended to create a virtual environment, then install dependencies:
 
 ```bash
 pip install flask flask-sqlalchemy flask-cors
+
 ```
-### 2.目录准备
-为了确保 Flask 能正确渲染页面，请确保目录结构如下（注意 index.html 需要放在 templates 文件夹内）：
+### 2.Directory Preparation
+To ensure Flask renders pages correctly, please ensure the directory structure is as follows (Note: index.html must be inside the templates folder):
 ```bash
-/项目根目录
-  ├── app.py              # 后端启动文件
+/Project Root
+  ├── app.py              # Backend entry file
   ├── templates/
-  │    └── index.html     # 前端页面
-  ├── static/             # 存放默认图片
-  ├── uploads/            # (自动创建)
-  └── food_images/        # (自动创建)
+  │   └── index.html      # Frontend entry page
+  ├── static/             # Default static assets/images
+  ├── uploads/            # (Auto-created)
+  └── food_images/        # (Auto-created)
 ```
 
-### 3. 启动服务器
+### 3. Start the Server
 ```bash
 python app.py
 ```
-注：首次运行时，系统会自动生成 restaurant.db 数据库文件并初始化测试数据。
+Note: On the first run, the system will automatically generate the restaurant.db database file and initialize test data.
 
-macOS 用户特别提示: macOS Monterey 及以上版本默认占用 5000 端口（AirPlay 服务）。 如果启动报错 Address already in use，请修改 app.py 底部代码，将端口改为 5001 或其他空闲端口： app.run(host='0.0.0.0', port=5001, debug=True)
+Special Note for macOS Users: macOS Monterey and newer versions occupy port 5000 by default (AirPlay Receiver). If you encounter an Address already in use error, please modify the code at the bottom of app.py to use port 5001 or another free port: app.run(host='0.0.0.0', port=5001, debug=True)
 
-4. 访问
-- 默认地址: http://127.0.0.1:5000
+4. Access
+- Default Address: http://127.0.0.1:5000
 
-- 若修改了端口: http://127.0.0.1:5001 (或其他自定义端口)
+- If Port Modified: http://127.0.0.1:5001 (or your custom port)
 
-- 局域网访问: 如需从同一 WiFi 下的其他设备访问，请使用本机 IP 地址（如 http://10.34.xx.xx:5001）。
+- LAN Access: To access from other devices on the same WiFi, use your machine's IP address (e.g., http://10.34.xx.xx:5001).
