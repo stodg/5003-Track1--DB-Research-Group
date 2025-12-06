@@ -1,8 +1,20 @@
-# Restaurant Management System
+# Restaurant Management System （Backend）
 
 A comprehensive restaurant management system built on **Flask + Vue.js**. This project adopts a decoupled architecture (Frontend imports Vue and Element UI via CDN) and implements core functionalities including user management, inventory control, order processing, and employee payroll calculation.
 
-## Tech Stack
+## Project Structure
+To ensure Flask renders pages correctly, please ensure the directory structure is as follows (Note: index.html must be inside the templates folder):
+```bash
+/Project Root
+  ├── app.py              # Backend entry file
+  ├── templates/
+  │   └── index.html      # Frontend entry page
+  ├── static/             # Default static assets/images
+  ├── uploads/            # (Auto-created)
+  └── food_images/        # (Auto-created)
+```
+
+## Dependencies
 
 * **Backend:** Python 3, Flask, SQLAlchemy (ORM)
 * **Frontend:** Vue.js 2, Element UI, Axios
@@ -46,19 +58,8 @@ It is recommended to create a virtual environment, then install dependencies:
 pip install flask flask-sqlalchemy flask-cors
 
 ```
-### 2.Directory Preparation
-To ensure Flask renders pages correctly, please ensure the directory structure is as follows (Note: index.html must be inside the templates folder):
-```bash
-/Project Root
-  ├── app.py              # Backend entry file
-  ├── templates/
-  │   └── index.html      # Frontend entry page
-  ├── static/             # Default static assets/images
-  ├── uploads/            # (Auto-created)
-  └── food_images/        # (Auto-created)
-```
 
-### 3. Start the Server
+### 2. Start the Server
 ```bash
 python app.py
 ```
@@ -66,7 +67,7 @@ Note: On the first run, the system will automatically generate the restaurant.db
 
 Special Note for macOS Users: macOS Monterey and newer versions occupy port 5000 by default (AirPlay Receiver). If you encounter an Address already in use error, please modify the code at the bottom of app.py to use port 5001 or another free port: app.run(host='0.0.0.0', port=5001, debug=True)
 
-4. Access
+### 3. Access
 - Default Address: http://127.0.0.1:5000
 
 - If Port Modified: http://127.0.0.1:5001 (or your custom port)
