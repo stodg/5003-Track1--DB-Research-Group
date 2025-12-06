@@ -61,5 +61,13 @@ pip install flask flask-sqlalchemy flask-cors
 ```bash
 python app.py
 ```
-### 4. 访问
-打开浏览器访问：http://127.0.0.1:5000
+注：首次运行时，系统会自动生成 restaurant.db 数据库文件并初始化测试数据。
+
+macOS 用户特别提示: macOS Monterey 及以上版本默认占用 5000 端口（AirPlay 服务）。 如果启动报错 Address already in use，请修改 app.py 底部代码，将端口改为 5001 或其他空闲端口： app.run(host='0.0.0.0', port=5001, debug=True)
+
+4. 访问
+- 默认地址: http://127.0.0.1:5000
+
+- 若修改了端口: http://127.0.0.1:5001 (或其他自定义端口)
+
+- 局域网访问: 如需从同一 WiFi 下的其他设备访问，请使用本机 IP 地址（如 http://10.34.xx.xx:5001）。
